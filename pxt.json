@@ -4,7 +4,8 @@
     "dependencies": {
         "core": "*",
         "radio": "*",
-        "microphone": "*"
+        "microphone": "*",
+        "BME280": "github:makecode-extensions/bme280#v1.1.0"
     },
     "files": [
         "main.blocks",

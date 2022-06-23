@@ -1,17 +1,70 @@
+function collect_data () {
+    // value given in kPa
+    pres = BME280.pressure(BME280_P.Pa) / 1000
+    // value given in percentage
+    hum = BME280.humidity()
+    // value given in Celsius degrees
+    temp = BME280.temperature(BME280_T.T_C)
+    // value given in ppm
+    eco2 = ENS160.eCO2()
+    // value given in ppb
+    tvoc = ENS160.TVOC()
+    // value given between 0 and 255
+    bright = Math.map(pins.analogReadPin(AnalogPin.P1), 0, 1023, 0, 255)
+}
+// Broadcast environmental data one by one
+function broadcast_data () {
+    // adatküldés rádióra
+    radio.sendValue("temperature", temp)
+    basic.pause(broadcast_message_delay)
+    radio.sendValue("eco2", eco2)
+    basic.pause(broadcast_message_delay)
+    radio.sendValue("light", bright)
+    basic.pause(broadcast_message_delay)
+    radio.sendValue("voc", tvoc)
+    basic.pause(broadcast_message_delay)
+    radio.sendValue("humidity", hum)
+    basic.pause(broadcast_message_delay)
+    radio.sendValue("pressure", pres)
+}
+function data2serial () {
+    // adatküldés soros portra
+    serial.writeValue("temp: ", temp)
+    serial.writeValue("hum: ", hum)
+    serial.writeValue("eCO2: ", eco2)
+    serial.writeValue("light: ", bright)
+    serial.writeValue("TVOC", tvoc)
+    serial.writeValue("pressure", pres)
+    serial.writeString("*****************")
+    serial.writeLine("")
+}
+let bright = 0
+let tvoc = 0
+let eco2 = 0
+let temp = 0
+let hum = 0
+let pres = 0
+let broadcast_message_delay = 0
+let ens160_status = null
+let old_time = control.millis()
+broadcast_message_delay = 50
+let wait = 1000
+// rádiócsoport beállítása
+radio.setGroup(100)
+// rádió teljesítmény beállítása
+radio.setTransmitPower(7)
+// Set sensor address
+BME280.Address(BME280_I2C_ADDRESS.ADDR_0x76)
 ENS160.Address(ENS160_I2C_ADDRESS.ADDR_0x52)
+// soros port átirányítása usb-re
 serial.redirectToUSB()
-serial.writeValue("FW major", ENS160.FwMajor())
-serial.writeValue("FW minor", ENS160.FwMinor())
-serial.writeValue("FW build", ENS160.FwBuild())
-ENS160.SetTemp(30)
-ENS160.SetHumidity(80)
+// Save environmental data  to variables
 basic.forever(function () {
-    serial.writeValue("Status", ENS160.Status())
-    serial.writeValue("PartID", ENS160.PartID())
-    serial.writeValue("AQI", ENS160.AQI())
-    serial.writeValue("eCO2", ENS160.eCO2())
-    serial.writeValue("TVOC", ENS160.TVOC())
-    serial.writeValue("Humidity", ENS160.Humidity())
-    serial.writeValue("Temp", ENS160.Temp())
-    basic.pause(1000)
+    if (control.millis() - old_time > wait) {
+        collect_data()
+        broadcast_data()
+        // data2serial() // Enable to read data over serial port
+        led.toggle(2, 2)
+        old_time = control.millis()
+    }
 })
