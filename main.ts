@@ -26,9 +26,7 @@ function collect_data () {
     // value given between 0 and 255
     bright = Math.map(pins.analogReadPin(AnalogPin.P1), 0, 1023, 0, 255)
 }
-serial.onDataReceived(serial.delimiters(Delimiters.NewLine), function () {
-	
-})
+
 // Broadcast environmental data one by one
 function broadcast_data () {
     // adatküldés rádióra
@@ -56,7 +54,14 @@ function data2serial () {
         serial.writeString("*****************")
         serial.writeLine("")
     } else if (DEBUG == 2) {
-    	
+        dataStreamer.writeNumberArray([
+        temp,
+        hum,
+        eco2,
+        bright,
+        tvoc,
+        pres
+        ])
     }
 }
 let bright = 0
@@ -82,6 +87,7 @@ BME280.Address(BME280_I2C_ADDRESS.ADDR_0x76)
 ENS160.Address(ENS160_I2C_ADDRESS.ADDR_0x52)
 // soros port átirányítása usb-re
 serial.redirectToUSB()
+serial.setBaudRate(BaudRate.BaudRate115200)
 // Save environmental data  to variables
 basic.forever(function () {
     if (control.millis() - old_time > wait) {
