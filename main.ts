@@ -2,14 +2,14 @@ input.onButtonPressed(Button.AB, function () {
     if (DEBUG == 0) {
         DEBUG = 1
         led.plot(0, 4)
-        led.plot(1, 4)
     } else if (DEBUG == 1) {
         DEBUG = 2
-        led.unplot(0, 4)
-        led.unplot(1, 4)
+        led.plot(0, 4)
+        led.plot(1, 4)
     } else {
         DEBUG = 0
-        led.plot(0, 4)
+        led.unplot(0, 4)
+        led.unplot(1, 4)
     }
 })
 function collect_data () {
