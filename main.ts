@@ -1,15 +1,15 @@
 input.onButtonPressed(Button.AB, function () {
     if (DEBUG == 0) {
-        led.unplot(0, 4)
-        led.unplot(1, 4)
         DEBUG = 1
+        led.plot(0, 4)
+        led.plot(1, 4)
     } else if (DEBUG == 1) {
         DEBUG = 2
-        led.plot(0, 4)
+        led.unplot(0, 4)
+        led.unplot(1, 4)
     } else {
         DEBUG = 0
         led.plot(0, 4)
-        led.plot(1, 4)
     }
 })
 function collect_data () {
@@ -26,7 +26,6 @@ function collect_data () {
     // value given between 0 and 255
     bright = Math.map(pins.analogReadPin(AnalogPin.P1), 0, 1023, 0, 255)
 }
-
 // Broadcast environmental data one by one
 function broadcast_data () {
     // adatküldés rádióra
@@ -54,6 +53,7 @@ function data2serial () {
         serial.writeString("*****************")
         serial.writeLine("")
     } else if (DEBUG == 2) {
+        serial.writeLine("")
         dataStreamer.writeNumberArray([
         temp,
         hum,
