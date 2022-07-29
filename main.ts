@@ -1,3 +1,17 @@
+input.onButtonPressed(Button.AB, function () {
+    if (DEBUG == 0) {
+        led.unplot(0, 4)
+        led.unplot(1, 4)
+        DEBUG = 1
+    } else if (DEBUG == 1) {
+        DEBUG = 2
+        led.plot(0, 4)
+    } else {
+        DEBUG = 0
+        led.plot(0, 4)
+        led.plot(1, 4)
+    }
+})
 function collect_data () {
     // value given in kPa
     pres = BME280.pressure(BME280_P.Pa) / 1000
@@ -12,6 +26,9 @@ function collect_data () {
     // value given between 0 and 255
     bright = Math.map(pins.analogReadPin(AnalogPin.P1), 0, 1023, 0, 255)
 }
+serial.onDataReceived(serial.delimiters(Delimiters.NewLine), function () {
+	
+})
 // Broadcast environmental data one by one
 function broadcast_data () {
     // adatküldés rádióra
@@ -28,15 +45,19 @@ function broadcast_data () {
     radio.sendValue("pressure", pres)
 }
 function data2serial () {
-    // adatküldés soros portra
-    serial.writeValue("temp: ", temp)
-    serial.writeValue("hum: ", hum)
-    serial.writeValue("eCO2: ", eco2)
-    serial.writeValue("light: ", bright)
-    serial.writeValue("TVOC", tvoc)
-    serial.writeValue("pressure", pres)
-    serial.writeString("*****************")
-    serial.writeLine("")
+    if (DEBUG == 1) {
+        // adatküldés soros portra
+        serial.writeValue("temp: ", temp)
+        serial.writeValue("hum: ", hum)
+        serial.writeValue("eCO2: ", eco2)
+        serial.writeValue("light: ", bright)
+        serial.writeValue("TVOC", tvoc)
+        serial.writeValue("pressure", pres)
+        serial.writeString("*****************")
+        serial.writeLine("")
+    } else if (DEBUG == 2) {
+    	
+    }
 }
 let bright = 0
 let tvoc = 0
@@ -45,7 +66,10 @@ let temp = 0
 let hum = 0
 let pres = 0
 let broadcast_message_delay = 0
+let DEBUG = 0
 let ens160_status = null
+let BROADCAST = true
+DEBUG = 0
 let old_time = control.millis()
 broadcast_message_delay = 50
 let wait = 1000
@@ -62,7 +86,12 @@ serial.redirectToUSB()
 basic.forever(function () {
     if (control.millis() - old_time > wait) {
         collect_data()
-        broadcast_data()
+        if (BROADCAST) {
+            broadcast_data()
+        }
+        if (DEBUG != 0) {
+            data2serial()
+        }
         // data2serial() // Enable to read data over serial port
         led.toggle(2, 2)
         old_time = control.millis()
